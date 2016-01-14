@@ -1,6 +1,7 @@
 <?php
 	include_once('functions.php');
 	$domains = $_POST['dom'];
+	$proxies = $_POST['proxies'];
 	
 	if($domains != ''){
 	
@@ -9,6 +10,11 @@
 		header('Content-Disposition: attachment; filename=result.csv');
 		
 		$domarray = explode("\n", str_replace("\r", "", $domains));
+		$proxies = explode("\n", str_replace("\r", "", $proxies)); // Declaring an array to store the proxy list
+		$proxy = '';
+        if (isset($proxies)) {  // If the $proxies array contains items, then
+        $proxy = $proxies[array_rand($proxies)];    // Select a random proxy from the array and assign to $proxy variable
+        }
 		// create a file pointer connected to the output stream
 			$output = fopen('php://output', 'w');
 
@@ -19,7 +25,7 @@
 			$domarray = explode("\n", str_replace("\r", "", $domains));
 			
 			foreach($domarray as $d){
-			$scraped_page = curl("https://www.domainnameshop.com/whois?domainname=$d");
+			$scraped_page = curl("https://www.domainnameshop.com/whois?domainname=$d", $proxy);
 			
 			$ns1 = scrape_between($scraped_page, "nserver:");
 			$ns2 = scrape_nxt_between($scraped_page, "nserver:");

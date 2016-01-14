@@ -22,11 +22,11 @@
     }
     
      // Defining the basic cURL function
-    function curl($url) {
+    function curl($url, $proxy) {
 
-        $proxies = array(); // Declaring an array to store the proxy list
+        /**$proxies = array(); // Declaring an array to store the proxy list
  
-       $proxies[] = '173.234.59.160:80';  
+        $proxies[] = '173.234.59.160:80';  
         $proxies[] = '192.161.160.55:80';
         $proxies[] = '69.147.248.111:80';
         $proxies[] = '192.161.160.19:80';
@@ -38,7 +38,7 @@
 
         if (isset($proxies)) {  // If the $proxies array contains items, then
         $proxy = $proxies[array_rand($proxies)];    // Select a random proxy from the array and assign to $proxy variable
-        }
+        }**/
 
         // Assigning cURL options to an array
         $options = Array(
