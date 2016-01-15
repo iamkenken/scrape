@@ -17,7 +17,7 @@
 
 	<div style="display: inline-block; margin: 0 20px; vertical-align: top;">
 	<label style="font-size: 14px; display: block;">Proxy</label>
-	<textarea name="proxies" class="proxies" Placeholder="Proxy here..." style="width: 300px; height: 200px; text-align: left">173.234.59.160:80
+	<textarea name="proxies" class="proxies" Placeholder="" style="width: 300px; height: 200px; text-align: left">173.234.59.160:80
 192.161.160.55:80
 69.147.248.111:80
 192.161.160.19:80
@@ -45,6 +45,7 @@ error_reporting(E_ALL);
 			
 		$domarray = explode("\n", str_replace("\r", "", $domains));
 		$proxies = explode("\n", str_replace("\r", "", $proxies)); // Declaring an array to store the proxy list
+		$export = array();
 
 		$proxy = '';
         if (isset($proxies)) {  // If the $proxies array contains items, then
@@ -72,17 +73,47 @@ error_reporting(E_ALL);
 		
 		$ns1 = scrape_between($scraped_page, "nserver:");
 		$ns2 = scrape_nxt_between($scraped_page, "nserver:");
+
+		if($ns1 == ''){ $ns1 = scrape_between($scraped_page, "Name Server:"); }
+		if($ns2 == ''){ $ns2 = scrape_nxt_between($scraped_page, "Name Server:"); }
 		//$remail = scrape_between($scraped_page, "", "");
 		$rname = scrape_between($scraped_page, "holder:");
+		if($rname == ''){ $rname = scrape_between($scraped_page, "Registrant Name:"); }
 		$state = scrape_between($scraped_page, "state:");
 		$creation = scrape_between($scraped_page, "created:");
+		if($creation == ''){ $creation = scrape_between($scraped_page, "Creation Date:"); }
+
 		$reg = scrape_between($scraped_page, "registrar:");
 		$deactivation = scrape_between($scraped_page, "deactivationdate:");
 		$delete = scrape_between($scraped_page, "date_to_delete:");
 		$release = scrape_between($scraped_page, "date_to_release:");
 		$modified = scrape_between($scraped_page, "modified:");
 		$expires = scrape_between($scraped_page, "expires:");
-		if($state == ''){ $state = "free"; }
+		if($expires == ''){ $expires = scrape_between($scraped_page, "Registrar Registration Expiration Date:"); }
+		$notfound = scrape_between($scraped_page, '"'.$d.'" not found.');
+		
+		if($notfound != ''){ $state = "free"; }
+
+		//Ccheck  if empty and format date
+		$creation = $creation != "" ? date_format(date_create($creation), 'Y-m-d') : "";
+		$deactivation = $deactivation != "" ? date_format(date_create($deactivation), 'Y-m-d') : "";
+		$delete = $delete != "" ? date_format(date_create($delete), 'Y-m-d') : "";
+		$release = $release != "" ? date_format(date_create($release), 'Y-m-d') : "";
+		$modified = $modified != "" ? date_format(date_create($modified), 'Y-m-d') : "";
+		$expires = $expires != "" ? date_format(date_create($expires), 'Y-m-d') : "";
+
+		array_push($export, array(
+			"domain" => $d, 
+			"ns1" => $ns1, 
+			"ns2" => $ns2, 
+			"rname" => $rname, 
+			"state" => $state, 
+			"creation" => $creation, 
+			"reg" => $reg, 
+			"deactivation" => $deactivation, 
+			"delete" => $delete, 
+			"modified" => $modified,
+			"expires" => $expires));
 
 		echo '<tr>';
 		echo '<td>'.$d.'</td>';
@@ -100,11 +131,11 @@ error_reporting(E_ALL);
 		echo '</tr>';
 		}
 		echo '</table>';
-		
 		?>
 		<form action="export.php" method="POST">
 		<input type="hidden" value="<?php echo $domains; ?>" name="dom" />
 		<input type="hidden" value="<?php echo $proxies; ?>" name="prox" />
+		<input type="hidden" value="<?php echo base64_encode(serialize($export)) ?>" name="whoisarray" />
 		<input type="submit" name="export" value="Export CSV" />
 		</form>
 <?php
